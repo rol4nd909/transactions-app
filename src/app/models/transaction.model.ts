@@ -12,7 +12,6 @@ export interface Transaction {
   description: string;
   otherParty?: OtherParty; // Optional, as some transactions might not have `otherParty`
   amountInEur?: number; // Computed field for converted amount
-  date?: string; // Added during transformation
 }
 
 export interface OtherParty {

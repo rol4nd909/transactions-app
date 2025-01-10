@@ -21,7 +21,6 @@ export class TransactionService {
               const { currencyRate, ...mappedTransaction } = transaction; // Omit currencyRate
               return {
                 ...mappedTransaction,
-                date: day.id,
                 amountInEur:
                   transaction.currencyCode === 'USD' && transaction.currencyRate
                     ? transaction.amount / transaction.currencyRate

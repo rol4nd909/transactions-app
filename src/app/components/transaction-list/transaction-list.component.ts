@@ -27,22 +27,16 @@ export class TransactionListComponent implements OnInit {
   }
 
   private groupTransactionsByDate(transactions: Transaction[]): {
-    [key: string]: Transaction[];
+    [date: string]: Transaction[];
   } {
-    return transactions.reduce((acc, transaction) => {
-      const date = transaction.date;
+    return transactions.reduce((acc, { timestamp, ...transaction }) => {
+      const date = timestamp.split('T')[0];
 
-      // Ensure date is a valid string
-      if (!date) {
-        return acc; // or handle it in a way that makes sense for your case
-      }
+      // Initialize the array for the date if it doesn't exist
+      (acc[date] ||= []).push({ timestamp, ...transaction });
 
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(transaction);
       return acc;
-    }, {} as { [key: string]: Transaction[] }); // Type assertion to make sure TypeScript knows the return type
+    }, {} as { [date: string]: Transaction[] });
   }
 
   // Method to format date to 'd MMMM' format in Dutch
