@@ -1,1 +1,6 @@
-/* You can add global styles to this file, and also import other style files */
+@forward "scss/_reset.scss";
+@forward "scss/_base.scss";
+@forward "scss/_layout.scss";
+@forward "scss/utilities";
+
+@layer --reset, --base, --layout, --components, --utils;

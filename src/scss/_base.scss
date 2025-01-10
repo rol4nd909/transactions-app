@@ -1,0 +1,55 @@
+@layer --base {
+  :root {
+    --color-neutral-100: hsl(60 22% 85%);
+    --color-neutral-900: hsl(210 31% 11%);
+    --color-primary-400: hsl(338 73% 45%);
+
+    --text: light-dark(var(--color-neutral-900), var(--color-neutral-100));
+    --surface: light-dark(var(--color-neutral-100), var(--color-neutral-900));
+
+    --constrain: 51rem;
+    --site-space: 1.5rem;
+
+    color-scheme: dark light;
+  }
+
+  body {
+    margin: 0;
+    padding-block: 1.5rem;
+    font-family: system-ui;
+    color: var(--text);
+
+    &::before,
+    &::after {
+      content: "";
+      z-index: -1;
+      position: fixed;
+      inset: 0;
+    }
+
+    &::before {
+      --size: 3rem;
+      --offset: calc(var(--size) / 2);
+      --line: color-mix(in hsl, var(--text), var(--surface) 90%);
+
+      background-color: var(--surface);
+      background-image: linear-gradient(
+          90deg,
+          var(--line) 1px,
+          transparent 1px var(--size)
+        ),
+        linear-gradient(var(--line) 1px, transparent 1px var(--size));
+      background-position: var(--offset) var(--offset);
+      background-size: var(--size) var(--size);
+      background-attachment: fixed;
+    }
+
+    &::after {
+      background-image: linear-gradient(
+        -35deg,
+        var(--surface) 40%,
+        transparent
+      );
+    }
+  }
+}
