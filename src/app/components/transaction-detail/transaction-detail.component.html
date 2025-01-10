@@ -1,0 +1,28 @@
+<div *ngIf="transaction" class="transaction-detail">
+  <div class="transaction-header">
+    <button (click)="goBack()">
+      <span class="sr-only">Back to Overview</span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
+    </button>
+
+    <div>
+      <span class="transaction-header__amount" data-test="amount">EUR <strong>{{ transaction.amountInEur | currency:'EUR':'' }}</strong></span>
+      <p class="transaction-header__party" data-test="party">{{ transaction.otherParty?.name }}</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <strong>{{ formatDate(transaction.timestamp) }}</strong>
+
+    <div>
+      <p>{{ transaction.otherParty?.name }}</p>
+      <p><strong>IBAN:</strong> {{ transaction.otherParty?.iban }}</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <strong>Omschrijving</strong>
+
+    <p data-test="description">{{ transaction.description }}</p>
+  </div>
+</div>

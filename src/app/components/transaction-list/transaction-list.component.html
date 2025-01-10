@@ -1,0 +1,17 @@
+<div class="transaction-list">
+  <div *ngFor="let date of getSortedDates()" class="transaction-group">
+    <h2 class="transaction-date">{{ formatDate(date) }} <span>EUR</span></h2>
+    <ul class="transaction-items">
+      <li
+        *ngFor="let transaction of transactions[date]"
+        class="transaction-item"
+        (click)="navigateToDetail(transaction.id)"
+      >
+        <span class="transaction-party">{{ transaction.otherParty?.name || 'unkown' }}</span>
+        <strong class="transaction-amount">
+          {{ transaction.amountInEur | currency:'EUR':'' }}
+        </strong>
+      </li>
+    </ul>
+  </div>
+</div>
