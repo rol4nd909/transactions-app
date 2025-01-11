@@ -25,4 +25,9 @@ describe('AppComponent', () => {
   it('should have the correct title', () => {
     expect(component.title).toEqual('transactions-app'); // Check the title property
   });
+
+  it('should have a router outlet', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('router-outlet')).not.toBeNull();
+  });
 });

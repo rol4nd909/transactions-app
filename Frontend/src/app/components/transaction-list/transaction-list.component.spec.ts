@@ -1,8 +1,15 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+import {
+  TestBed,
+  ComponentFixture,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import { TransactionListComponent } from './transaction-list.component';
 import { TransactionService } from '../../services/transaction.service';
-import { of } from 'rxjs';
-import { RouterTestingModule } from '@angular/router/testing';
+import { of, throwError } from 'rxjs';
+import { provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { CommonModule, DatePipe } from '@angular/common';
 
 describe('TransactionListComponent', () => {
   let component: TransactionListComponent;
@@ -15,11 +22,11 @@ describe('TransactionListComponent', () => {
     ]);
 
     await TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule.withRoutes([]), // Router mock
-      ],
+      imports: [TransactionListComponent, CommonModule],
       providers: [
         { provide: TransactionService, useValue: mockTransactionService },
+        provideRouter([]), // Provide router
+        DatePipe,
       ],
     }).compileComponents();
 
@@ -73,5 +80,50 @@ describe('TransactionListComponent', () => {
     expect(component.transactions).toEqual({
       '2025-01-10': [mockTransactions[0], mockTransactions[1]],
     });
+
+    const transactionGroups = fixture.debugElement.queryAll(
+      By.css('.transaction-group')
+    );
+    expect(transactionGroups.length).toBe(1);
+
+    const transactionItems = fixture.debugElement.queryAll(
+      By.css('.transaction-item')
+    );
+    expect(transactionItems.length).toBe(2);
+
+    const transactionParties = fixture.debugElement.queryAll(
+      By.css('.transaction-party')
+    );
+    expect(transactionParties[0].nativeElement.textContent).toContain(
+      'Party A'
+    );
+    expect(transactionParties[1].nativeElement.textContent).toContain(
+      'Party B'
+    );
+
+    const transactionAmounts = fixture.debugElement.queryAll(
+      By.css('.transaction-amount')
+    );
+    expect(transactionAmounts[0].nativeElement.textContent).toContain('100.50');
+    expect(transactionAmounts[1].nativeElement.textContent).toContain('50.00');
+  });
+
+  it('should handle error when fetching transactions', () => {
+    const errorResponse = new ErrorEvent('Network error');
+
+    mockTransactionService.getTransactions.and.returnValue(
+      throwError(() => ({ error: errorResponse }))
+    );
+
+    component.ngOnInit(); // Trigger ngOnInit
+
+    fixture.detectChanges(); // Trigger change detection
+
+    expect(component.error).toBe('Failed to load transactions');
+    const errorElement = fixture.debugElement.query(By.css('.error'));
+    expect(errorElement).toBeTruthy();
+    expect(errorElement.nativeElement.textContent).toContain(
+      'Failed to load transactions'
+    );
   });
 });

@@ -12,7 +12,8 @@ import { ActivatedRoute, Router } from '@angular/router';
   providers: [DatePipe],
 })
 export class TransactionDetailComponent implements OnInit {
-  transaction: Transaction | null = null;
+  transaction: Transaction | undefined = undefined;
+  loading: boolean = true;
 
   constructor(
     private transactionService: TransactionService,
@@ -23,11 +24,17 @@ export class TransactionDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const transactionId = +this.route.snapshot.paramMap.get('id')!; // Get ID from the route params
-    this.transactionService
-      .getTransactionById(transactionId)
-      .subscribe((transaction) => {
-        this.transaction = transaction ?? null; // Set the transaction if it exists
-      });
+    this.transactionService.getTransactionById(transactionId).subscribe({
+      next: (transaction) => {
+        this.transaction = transaction; // Set the transaction if it exists
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading transaction:', err);
+        this.transaction = undefined;
+        this.loading = false;
+      },
+    });
   }
 
   // Method to format date to 'd MMMM y' format in Dutch

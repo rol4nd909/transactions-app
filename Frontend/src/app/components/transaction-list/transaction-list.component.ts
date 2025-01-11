@@ -13,6 +13,7 @@ import { Transaction } from '../../models/transaction.model';
 })
 export class TransactionListComponent implements OnInit {
   transactions: { [date: string]: Transaction[] } = {};
+  error: string | null = null;
 
   constructor(
     private transactionService: TransactionService,
@@ -21,8 +22,14 @@ export class TransactionListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.transactionService.getTransactions().subscribe((transactions) => {
-      this.transactions = this.groupTransactionsByDate(transactions);
+    this.transactionService.getTransactions().subscribe({
+      next: (transactions) => {
+        this.transactions = this.groupTransactionsByDate(transactions);
+        this.error = null;
+      },
+      error: (err) => {
+        this.error = 'Failed to load transactions';
+      },
     });
   }
 
