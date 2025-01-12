@@ -2,5 +2,6 @@
 @forward "scss/_base.scss";
 @forward "scss/_layout.scss";
 @forward "scss/utilities";
+@forward "scss/loader";
 
 @layer --reset, --base, --layout, --components, --utils;
