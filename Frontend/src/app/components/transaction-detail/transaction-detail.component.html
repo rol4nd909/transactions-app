@@ -1,9 +1,11 @@
-<div *ngIf="loading; else contentTemplate" class="loading-message">
+<div *ngIf="loading$ | async; else contentTemplate" class="loading-message">
+  <div class="loader"></div>
   <p>Loading transaction details...</p>
 </div>
 
 <ng-template #contentTemplate>
   <div *ngIf="transaction; else errorTemplate" class="transaction-detail">
+
     <div class="transaction-header">
       <button (click)="goBack()">
         <span class="sr-only">Back to Overview</span>
@@ -26,14 +28,14 @@
     </div>
 
     <div class="box">
-      <strong>Omschrijving</strong>
+      <strong>Description</strong>
 
       <p data-test="description">{{ transaction.description }}</p>
     </div>
   </div>
 
   <ng-template #errorTemplate>
-    <div class="error-message">
+    <div data-test="error-message">
       <p>Error loading transaction details. Please try again later.</p>
       <button (click)="goBack()">Back to Overview</button>
     </div>

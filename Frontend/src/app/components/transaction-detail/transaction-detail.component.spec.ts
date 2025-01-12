@@ -1,104 +1,91 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TransactionDetailComponent } from './transaction-detail.component';
-import { ActivatedRoute } from '@angular/router';
-import { of, throwError } from 'rxjs';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
 import { TransactionService } from '../../services/transaction.service';
+import { ActivatedRoute } from '@angular/router';
+import { of, BehaviorSubject, throwError } from 'rxjs';
+import { CommonModule, DatePipe } from '@angular/common';
+import { provideRouter } from '@angular/router';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('TransactionDetailComponent', () => {
   let component: TransactionDetailComponent;
   let fixture: ComponentFixture<TransactionDetailComponent>;
-  let transactionService: TransactionService;
+  let transactionService: jasmine.SpyObj<TransactionService>;
+  let loadingSubject: BehaviorSubject<boolean>;
 
   beforeEach(async () => {
+    const transactionServiceSpy = jasmine.createSpyObj('TransactionService', [
+      'getTransactionById',
+    ]);
+    loadingSubject = new BehaviorSubject<boolean>(false);
+
     await TestBed.configureTestingModule({
-      imports: [
-        TransactionDetailComponent, // Import the standalone component
-      ],
+      imports: [CommonModule, TransactionDetailComponent],
       providers: [
-        provideRouter([]), // Provide router utilities
-        provideHttpClient(), // Provide HttpClient utilities
+        DatePipe,
+        { provide: TransactionService, useValue: transactionServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: { paramMap: { get: () => '1' } }, // Mock route params
+            snapshot: { paramMap: { get: () => '1' } },
           },
         },
+        provideRouter([]),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TransactionDetailComponent);
     component = fixture.componentInstance;
-    transactionService = TestBed.inject(TransactionService);
-    fixture.detectChanges();
+    transactionService = TestBed.inject(
+      TransactionService
+    ) as jasmine.SpyObj<TransactionService>;
+    transactionService.loading$ = loadingSubject.asObservable();
+    transactionService.getTransactionById.and.returnValue(of(undefined)); // Ensure it returns an observable
   });
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should load transaction details', () => {
-    spyOn(transactionService, 'getTransactionById').and.returnValue(
-      of({
-        id: 1,
-        timestamp: '2025-01-10T10:00:00Z',
-        amount: 100.5,
-        currencyCode: 'EUR',
-        amountInEur: 100.5,
-        description: 'Sample transaction',
-        otherParty: {
-          name: 'Party Name',
-          iban: 'NL00BANK0123456789',
-        },
-      })
-    );
-
-    component.ngOnInit();
+  it('should display transaction details when loaded', () => {
+    const mockTransaction = {
+      id: 1,
+      amount: 100,
+      amountInEur: 85,
+      currencyCode: 'USD',
+      timestamp: '2023-10-01T12:00:00Z',
+      description: 'Test transaction',
+      otherParty: { name: 'John Doe', iban: 'NL00RABO0123456789' },
+    };
+    transactionService.getTransactionById.and.returnValue(of(mockTransaction));
+    loadingSubject.next(false);
     fixture.detectChanges();
-
-    expect(component.transaction?.id).toBe(1);
-    expect(component.transaction?.amountInEur).toBe(100.5);
-    expect(component.transaction?.description).toBe('Sample transaction');
-    expect(component.transaction?.otherParty?.name).toBe('Party Name');
-    expect(component.transaction?.otherParty?.iban).toBe('NL00BANK0123456789');
+    const amountElement = fixture.nativeElement.querySelector(
+      '[data-test="amount"]'
+    );
+    expect(amountElement.textContent).toContain('EUR 85');
   });
 
-  it('should handle null transaction', () => {
-    spyOn(transactionService, 'getTransactionById').and.returnValue(
-      of(undefined)
-    );
-
-    component.ngOnInit();
+  it('should display error message if transaction not found', () => {
+    transactionService.getTransactionById.and.returnValue(of(undefined));
+    loadingSubject.next(false);
     fixture.detectChanges();
-
-    expect(component.transaction).toBeUndefined();
+    const errorMessage = fixture.nativeElement.querySelector(
+      '[data-test="error-message"]'
+    );
+    expect(errorMessage).toBeTruthy();
   });
 
-  it('should handle error from service', () => {
-    spyOn(transactionService, 'getTransactionById').and.returnValue(
+  it('should handle errors from the service', () => {
+    transactionService.getTransactionById.and.returnValue(
       throwError(() => new Error('Error'))
     );
-
-    component.ngOnInit();
+    loadingSubject.next(false);
     fixture.detectChanges();
-
-    const errorMessage = fixture.nativeElement.querySelector('.error-message');
+    const errorMessage = fixture.nativeElement.querySelector(
+      '[data-test="error-message"]'
+    );
     expect(errorMessage).toBeTruthy();
-    expect(errorMessage.textContent).toContain(
-      'Error loading transaction details. Please try again later.'
-    );
-  });
-
-  it('should handle loading state', () => {
-    component.loading = true;
-    fixture.detectChanges();
-
-    const loadingMessage =
-      fixture.nativeElement.querySelector('.loading-message');
-    expect(loadingMessage).toBeTruthy();
-    expect(loadingMessage.textContent).toContain(
-      'Loading transaction details...'
-    );
   });
 });

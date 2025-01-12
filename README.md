@@ -17,53 +17,25 @@ The frontend of the application was built using Angular. The main features inclu
 - Navigating to a detail page when a transaction is clicked, displaying more in-depth details.
 - Basic styling using SCSS for a better user experience.
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.7.
+#### Installation
 
-#### Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
-```
+1. Go to the frontend folder
+    ```bash
+    cd Frontend
+    ```
+2. Install dependencies:
+    ```bash
+    npm install
+    ```
+3. Run the application
+    ```bash
+    ng serve
+    ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-#### Code scaffolding
+More information about the frontend you can find in the `/Frontend/README.md`
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-#### Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-#### Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-#### Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 
 ### Backend
 
@@ -75,12 +47,15 @@ The backend is a simple Express service that serves a transactions file. The mai
 
 #### Installation
 
-1. Install dependencies:
+1. Go to the backend folder
+    ```bash
+    cd Backend
+    ```
+2. Install dependencies:
     ```bash
     npm install
     ```
-
-2. Running the server:
+3. Running the server:
     - Mac: 
         ```bash
         npm run start:mac
@@ -89,10 +64,6 @@ The backend is a simple Express service that serves a transactions file. The mai
         ```bash
         npm run start:windows
         ```
-
-> - This command will run the typescript compiler
-> - Copies the transaction.json file to the dist folder
-> - Run the express service on port `8080`
 
 #### Endpoints
 

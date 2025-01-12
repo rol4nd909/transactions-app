@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { Transaction } from '../../models/transaction.model';
 import { TransactionService } from '../../services/transaction.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-transaction-detail',
@@ -13,36 +14,50 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class TransactionDetailComponent implements OnInit {
   transaction: Transaction | undefined = undefined;
-  loading: boolean = true;
+  // Observable to track loading state
+  loading$: Observable<boolean>;
 
+  /**
+   * Constructor to initialize the component with necessary services.
+   * @param transactionService Service to fetch transaction data.
+   * @param route ActivatedRoute to access route parameters.
+   * @param router Router to navigate between routes.
+   * @param datePipe DatePipe to format dates.
+   */
   constructor(
     private transactionService: TransactionService,
     private route: ActivatedRoute,
     private router: Router,
     private datePipe: DatePipe
-  ) {}
-
-  ngOnInit(): void {
-    const transactionId = +this.route.snapshot.paramMap.get('id')!; // Get ID from the route params
-    this.transactionService.getTransactionById(transactionId).subscribe({
-      next: (transaction) => {
-        this.transaction = transaction; // Set the transaction if it exists
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading transaction:', err);
-        this.transaction = undefined;
-        this.loading = false;
-      },
-    });
+  ) {
+    this.loading$ = this.transactionService.loading$; // Initialize loading$ in the constructor
   }
 
-  // Method to format date to 'd MMMM y' format in Dutch
+  /**
+   * OnInit lifecycle hook to fetch transaction details based on route parameter.
+   */
+  ngOnInit(): void {
+    const transactionId = +this.route.snapshot.paramMap.get('id')!; // Get ID from the route params
+    this.transactionService
+      .getTransactionById(transactionId)
+      .subscribe((transaction) => {
+        this.transaction = transaction; // Set the transaction if it exists
+      });
+  }
+
+  /**
+   * Method to format date to 'd MMMM y' format in Dutch.
+   * @param date The date string to format.
+   * @returns The formatted date string or null if the input is invalid.
+   */
   formatDate(date: string): string | null {
     return this.datePipe.transform(date, 'd MMMM y', 'nl-NL');
   }
 
+  /**
+   * Method to navigate back to the overview (or list) page.
+   */
   goBack(): void {
-    this.router.navigate(['/']); // Navigate back to the overview (or list) page
+    this.router.navigate(['/']);
   }
 }

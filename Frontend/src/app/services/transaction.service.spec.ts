@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { TransactionService } from './transaction.service';
 import { environment } from '../../../environment';
+import { Transaction } from '../models/transaction.model';
 
 describe('TransactionService', () => {
   let service: TransactionService;
@@ -61,14 +62,12 @@ describe('TransactionService', () => {
   it('should handle error when fetching transactions', () => {
     const errorResponse = new ErrorEvent('Network error');
 
-    httpClientSpy.get.and.returnValue(
-      throwError(() => ({ error: errorResponse }))
-    );
+    httpClientSpy.get.and.returnValue(throwError(() => errorResponse));
 
-    service.getTransactions().subscribe(
-      () => fail('expected an error, not transactions'),
-      (error) => expect(error.error).toEqual(errorResponse)
-    );
+    service.getTransactions().subscribe({
+      next: (transactions) => expect(transactions).toEqual([]),
+      error: () => fail('expected an empty array, not an error'),
+    });
 
     expect(httpClientSpy.get.calls.count()).toBe(1);
     expect(httpClientSpy.get.calls.mostRecent().args[0]).toBe(
@@ -150,5 +149,60 @@ describe('TransactionService', () => {
     expect(httpClientSpy.get.calls.mostRecent().args[0]).toBe(
       `${environment.apiUrl}`
     );
+  });
+
+  it('should group transactions by date', () => {
+    const transactions: Transaction[] = [
+      {
+        id: 1,
+        amount: 100,
+        currencyCode: 'EUR',
+        description: 'Description 1',
+        timestamp: '2023-10-01T10:00:00Z',
+      },
+      {
+        id: 2,
+        amount: 200,
+        currencyCode: 'EUR',
+        description: 'Description 2',
+        timestamp: '2023-10-01T12:00:00Z',
+      },
+      {
+        id: 3,
+        amount: 300,
+        currencyCode: 'EUR',
+        description: 'Description 3',
+        timestamp: '2023-10-02T09:00:00Z',
+      },
+    ];
+
+    const groupedTransactions = service.groupTransactionsByDate(transactions);
+
+    expect(groupedTransactions['2023-10-01']).toEqual([
+      {
+        id: 1,
+        amount: 100,
+        currencyCode: 'EUR',
+        description: 'Description 1',
+        timestamp: '2023-10-01T10:00:00Z',
+      },
+      {
+        id: 2,
+        amount: 200,
+        currencyCode: 'EUR',
+        description: 'Description 2',
+        timestamp: '2023-10-01T12:00:00Z',
+      },
+    ]);
+
+    expect(groupedTransactions['2023-10-02']).toEqual([
+      {
+        id: 3,
+        amount: 300,
+        currencyCode: 'EUR',
+        description: 'Description 3',
+        timestamp: '2023-10-02T09:00:00Z',
+      },
+    ]);
   });
 });

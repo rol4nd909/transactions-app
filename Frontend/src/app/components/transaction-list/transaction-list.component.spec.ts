@@ -1,129 +1,167 @@
-import {
-  TestBed,
-  ComponentFixture,
-  fakeAsync,
-  tick,
-} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TransactionListComponent } from './transaction-list.component';
 import { TransactionService } from '../../services/transaction.service';
-import { of, throwError } from 'rxjs';
-import { provideRouter } from '@angular/router';
+import { Router } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { of } from 'rxjs';
 import { By } from '@angular/platform-browser';
-import { CommonModule, DatePipe } from '@angular/common';
 
 describe('TransactionListComponent', () => {
   let component: TransactionListComponent;
   let fixture: ComponentFixture<TransactionListComponent>;
-  let mockTransactionService: jasmine.SpyObj<TransactionService>;
+  let transactionServiceMock: any;
+  let routerMock: any;
 
   beforeEach(async () => {
-    mockTransactionService = jasmine.createSpyObj('TransactionService', [
-      'getTransactions',
-    ]);
+    transactionServiceMock = {
+      getTransactions: jasmine
+        .createSpy('getTransactions')
+        .and.returnValue(of([])),
+      groupTransactionsByDate: jasmine.createSpy('groupTransactionsByDate'),
+      loading$: of(false),
+      error$: of(null),
+    };
+
+    routerMock = {
+      navigate: jasmine.createSpy('navigate'),
+    };
 
     await TestBed.configureTestingModule({
-      imports: [TransactionListComponent, CommonModule],
+      imports: [TransactionListComponent],
       providers: [
-        { provide: TransactionService, useValue: mockTransactionService },
-        provideRouter([]), // Provide router
+        { provide: TransactionService, useValue: transactionServiceMock },
+        { provide: Router, useValue: routerMock },
         DatePipe,
       ],
     }).compileComponents();
+  });
 
+  beforeEach(() => {
     fixture = TestBed.createComponent(TransactionListComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should call getTransactions when ngOnInit is called', () => {
-    mockTransactionService.getTransactions.and.returnValue(of([])); // Mock with empty array
-
-    component.ngOnInit(); // Trigger ngOnInit
-
-    expect(mockTransactionService.getTransactions).toHaveBeenCalled();
-  });
-
-  it('should fetch and group transactions by date on initialization', () => {
-    const mockTransactions = [
+  it('should display transactions grouped by date', () => {
+    const transactions = [
       {
+        date: '2023-10-01',
         id: 1,
-        date: '2025-01-10',
-        timestamp: '2025-01-10T10:00:00Z',
-        amount: 100.5,
+        timestamp: '2023-10-01T11:11:11',
+        amount: -100,
         currencyCode: 'EUR',
-        amountInEur: 100.5,
-        otherParty: { name: 'Party A', iban: 'NL00BANK0123456789' },
-        description: 'Transaction A',
+        description: 'Some interesting description',
+        otherParty: {
+          name: 'John Doe',
+          iban: 'NL00RABO0123456789',
+        },
       },
       {
+        date: '2023-10-01',
         id: 2,
-        date: '2025-01-10',
-        timestamp: '2025-01-10T11:00:00Z',
+        timestamp: '2023-10-01T11:15:11',
+        amount: -75,
+        currencyCode: 'USD',
+        currencyRate: 1.173628,
+        description: 'Description',
+        otherParty: {
+          name: 'Jane Doe',
+          iban: 'NL00RABO0987654321',
+        },
+      },
+      {
+        date: '2023-10-02',
+        id: 3,
+        timestamp: '2023-10-02T11:15:11',
         amount: 50,
         currencyCode: 'EUR',
-        amountInEur: 50,
-        otherParty: { name: 'Party B', iban: 'NL00BANK9876543210' },
-        description: 'Transaction B',
+        description: 'Description',
+        otherParty: {
+          name: 'Jane Doe',
+          iban: 'NL00RABO0987654321',
+        },
       },
     ];
+    const groupedTransactions = {
+      '2023-10-01': [transactions[0], transactions[1]],
+      '2023-10-02': [transactions[2]],
+    };
+    transactionServiceMock.getTransactions.and.returnValue(of(transactions));
+    transactionServiceMock.groupTransactionsByDate.and.returnValue(
+      groupedTransactions
+    );
 
-    mockTransactionService.getTransactions.and.returnValue(
-      of(mockTransactions)
-    ); // Ensure it returns an observable
-    component.ngOnInit(); // Trigger ngOnInit
+    fixture.detectChanges();
 
-    fixture.detectChanges(); // Trigger change detection
+    component.transactions = groupedTransactions;
+    fixture.detectChanges();
 
-    expect(component.transactions).toEqual({
-      '2025-01-10': [mockTransactions[0], mockTransactions[1]],
-    });
-
+    const sortedDates = component.getSortedDates();
     const transactionGroups = fixture.debugElement.queryAll(
-      By.css('.transaction-group')
+      By.css('[data-test="group"]')
     );
-    expect(transactionGroups.length).toBe(1);
-
-    const transactionItems = fixture.debugElement.queryAll(
-      By.css('.transaction-item')
-    );
-    expect(transactionItems.length).toBe(2);
-
-    const transactionParties = fixture.debugElement.queryAll(
-      By.css('.transaction-party')
-    );
-    expect(transactionParties[0].nativeElement.textContent).toContain(
-      'Party A'
-    );
-    expect(transactionParties[1].nativeElement.textContent).toContain(
-      'Party B'
-    );
-
-    const transactionAmounts = fixture.debugElement.queryAll(
-      By.css('.transaction-amount')
-    );
-    expect(transactionAmounts[0].nativeElement.textContent).toContain('100.50');
-    expect(transactionAmounts[1].nativeElement.textContent).toContain('50.00');
+    expect(transactionGroups.length).toBe(2);
+    expect(
+      transactionGroups[0].query(By.css('[data-test="date"]')).nativeElement
+        .textContent
+    ).toContain(component.formatDate(sortedDates[0]));
+    expect(
+      transactionGroups[1].query(By.css('[data-test="date"]')).nativeElement
+        .textContent
+    ).toContain(component.formatDate(sortedDates[1]));
   });
 
-  it('should handle error when fetching transactions', () => {
-    const errorResponse = new ErrorEvent('Network error');
-
-    mockTransactionService.getTransactions.and.returnValue(
-      throwError(() => ({ error: errorResponse }))
+  it('should navigate to transaction detail on click', () => {
+    const transactions = [
+      {
+        date: '2023-10-01',
+        id: 1,
+        timestamp: '2023-10-01T11:11:11',
+        amount: -100,
+        currencyCode: 'EUR',
+        description: 'Some interesting description',
+        otherParty: {
+          name: 'John Doe',
+          iban: 'NL00RABO0123456789',
+        },
+      },
+    ];
+    const groupedTransactions = {
+      '2023-10-01': [transactions[0]],
+    };
+    transactionServiceMock.getTransactions.and.returnValue(of(transactions));
+    transactionServiceMock.groupTransactionsByDate.and.returnValue(
+      groupedTransactions
     );
 
-    component.ngOnInit(); // Trigger ngOnInit
+    fixture.detectChanges();
 
-    fixture.detectChanges(); // Trigger change detection
+    component.transactions = groupedTransactions;
+    fixture.detectChanges();
 
-    expect(component.error).toBe('Failed to load transactions');
-    const errorElement = fixture.debugElement.query(By.css('.error'));
+    const transactionItem = fixture.debugElement.query(
+      By.css('[data-test="item"]')
+    );
+    expect(transactionItem).toBeTruthy();
+    transactionItem.triggerEventHandler('click', null);
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/transactions', 1]);
+  });
+
+  it('should display error message when loading items fails', () => {
+    const errorMessage = 'Error fetching transactions. Please try again later.';
+    transactionServiceMock.error$ = of(errorMessage);
+    fixture.detectChanges();
+    component.error$ = transactionServiceMock.error$;
+    fixture.detectChanges();
+    const errorElement = fixture.debugElement.query(
+      By.css('[data-test="error-message"]')
+    );
     expect(errorElement).toBeTruthy();
-    expect(errorElement.nativeElement.textContent).toContain(
-      'Failed to load transactions'
-    );
+    expect(errorElement.nativeElement.textContent).toContain(errorMessage);
   });
 });

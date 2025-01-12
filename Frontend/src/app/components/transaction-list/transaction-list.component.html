@@ -1,18 +1,28 @@
-<div class="transaction-list">
-  <div *ngIf="error" class="error">{{ error }}</div>
-  <div *ngFor="let date of getSortedDates()" class="transaction-group">
-    <h2 class="transaction-date">{{ formatDate(date) }} <span>EUR</span></h2>
-    <ul class="transaction-items">
-      <li
-        *ngFor="let transaction of transactions[date]"
-        class="transaction-item"
-        (click)="navigateToDetail(transaction.id)"
-      >
-        <span class="transaction-party">{{ transaction.otherParty?.name || 'unknown' }}</span>
-        <strong class="transaction-amount">
-          {{ transaction.amountInEur | currency:'EUR':'' }}
-        </strong>
-      </li>
-    </ul>
-  </div>
+<div *ngIf="loading$ | async; else contentTemplate" class="loading-message" data-test="loading-message">
+  <div class="loader"></div>
+  <p>Loading transactions...</p>
 </div>
+
+<ng-template #contentTemplate>
+  <div *ngIf="error$ | async as errorMessage" data-test="error-message">
+    <p>{{ errorMessage }}</p>
+  </div>
+  <div *ngIf="!(error$ | async)" class="transaction-list">
+    <div *ngFor="let date of getSortedDates()" class="transaction-group" data-test="group">
+      <h2 class="transaction-date"><span data-test="date">{{ formatDate(date) }}</span> <span>EUR</span></h2>
+      <ul class="transaction-items">
+        <li
+          *ngFor="let transaction of transactions[date]"
+          class="transaction-item"
+          data-test="item"
+          (click)="navigateToDetail(transaction.id)"
+        >
+          <span class="transaction-party">{{ transaction.otherParty?.name || 'unknown' }}</span>
+          <strong class="transaction-amount">
+            {{ transaction.amountInEur | currency:'EUR':'' }}
+          </strong>
+        </li>
+      </ul>
+    </div>
+  </div>
+</ng-template>
