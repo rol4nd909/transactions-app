@@ -1,45 +1,46 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TransactionListComponent } from './transaction-list.component';
 import { TransactionService } from '../../services/transaction.service';
-import { Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
-import { of } from 'rxjs';
+import { provideRouter, Router } from '@angular/router';
+import { CommonModule, DatePipe } from '@angular/common';
+import { BehaviorSubject, of } from 'rxjs';
 import { By } from '@angular/platform-browser';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('TransactionListComponent', () => {
   let component: TransactionListComponent;
   let fixture: ComponentFixture<TransactionListComponent>;
-  let transactionServiceMock: any;
-  let routerMock: any;
+  let transactionService: jasmine.SpyObj<TransactionService>;
+  let loadingSubject: BehaviorSubject<boolean>;
+  let routerMock: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    transactionServiceMock = {
-      getTransactions: jasmine
-        .createSpy('getTransactions')
-        .and.returnValue(of([])),
-      groupTransactionsByDate: jasmine.createSpy('groupTransactionsByDate'),
-      loading$: of(false),
-      error$: of(null),
-    };
+    const transactionServiceSpy = jasmine.createSpyObj('TransactionService', [
+      'getTransactions',
+      'groupTransactionsByDate',
+    ]);
+    loadingSubject = new BehaviorSubject<boolean>(false);
 
-    routerMock = {
-      navigate: jasmine.createSpy('navigate'),
-    };
+    routerMock = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [TransactionListComponent],
+      imports: [CommonModule, TransactionListComponent],
       providers: [
-        { provide: TransactionService, useValue: transactionServiceMock },
-        { provide: Router, useValue: routerMock },
         DatePipe,
+        { provide: TransactionService, useValue: transactionServiceSpy },
+        { provide: Router, useValue: routerMock },
+        provideRouter([]),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(TransactionListComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    transactionService = TestBed.inject(
+      TransactionService
+    ) as jasmine.SpyObj<TransactionService>;
+    transactionService.loading$ = loadingSubject.asObservable();
+    transactionService.getTransactions.and.returnValue(of([])); // Ensure it returns an observable
   });
 
   it('should create the component', () => {
@@ -90,12 +91,10 @@ describe('TransactionListComponent', () => {
       '2023-10-01': [transactions[0], transactions[1]],
       '2023-10-02': [transactions[2]],
     };
-    transactionServiceMock.getTransactions.and.returnValue(of(transactions));
-    transactionServiceMock.groupTransactionsByDate.and.returnValue(
+    transactionService.getTransactions.and.returnValue(of(transactions));
+    transactionService.groupTransactionsByDate.and.returnValue(
       groupedTransactions
     );
-
-    fixture.detectChanges();
 
     component.transactions = groupedTransactions;
     fixture.detectChanges();
@@ -133,12 +132,10 @@ describe('TransactionListComponent', () => {
     const groupedTransactions = {
       '2023-10-01': [transactions[0]],
     };
-    transactionServiceMock.getTransactions.and.returnValue(of(transactions));
-    transactionServiceMock.groupTransactionsByDate.and.returnValue(
+    transactionService.getTransactions.and.returnValue(of(transactions));
+    transactionService.groupTransactionsByDate.and.returnValue(
       groupedTransactions
     );
-
-    fixture.detectChanges();
 
     component.transactions = groupedTransactions;
     fixture.detectChanges();
@@ -154,9 +151,8 @@ describe('TransactionListComponent', () => {
 
   it('should display error message when loading items fails', () => {
     const errorMessage = 'Error fetching transactions. Please try again later.';
-    transactionServiceMock.error$ = of(errorMessage);
-    fixture.detectChanges();
-    component.error$ = transactionServiceMock.error$;
+    transactionService.error$ = of(errorMessage);
+    component.error$ = transactionService.error$;
     fixture.detectChanges();
     const errorElement = fixture.debugElement.query(
       By.css('[data-test="error-message"]')
