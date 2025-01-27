@@ -100,15 +100,17 @@ describe('TransactionService', () => {
 
     httpClientSpy.get.and.returnValue(of(mockResponse));
 
-    service.getTransactionById(1).subscribe((transaction) => {
-      expect(transaction).toEqual({
-        id: 1,
-        amount: 100,
-        currencyCode: 'USD',
-        description: 'Transaction A',
-        timestamp: '2025-01-10T10:00:00Z',
+    service
+      .getTransactionByDateAndId('2025-01-10', 1)
+      .subscribe((transaction) => {
+        expect(transaction).toEqual({
+          id: 1,
+          amount: 100,
+          currencyCode: 'USD',
+          description: 'Transaction A',
+          timestamp: '2025-01-10T10:00:00Z',
+        });
       });
-    });
 
     expect(httpClientSpy.get.calls.count()).toBe(1);
     expect(httpClientSpy.get.calls.mostRecent().args[0]).toBe(
@@ -137,9 +139,11 @@ describe('TransactionService', () => {
 
     httpClientSpy.get.and.returnValue(of(mockResponse));
 
-    service.getTransactionById(999).subscribe((transaction) => {
-      expect(transaction).toBeUndefined();
-    });
+    service
+      .getTransactionByDateAndId('2022-01-01', 999)
+      .subscribe((transaction) => {
+        expect(transaction).toBeUndefined();
+      });
 
     expect(httpClientSpy.get.calls.count()).toBe(1);
     expect(httpClientSpy.get.calls.mostRecent().args[0]).toBe(

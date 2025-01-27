@@ -15,7 +15,7 @@ describe('TransactionDetailComponent', () => {
 
   beforeEach(async () => {
     const transactionServiceSpy = jasmine.createSpyObj('TransactionService', [
-      'getTransactionById',
+      'getTransactionByDateAndId',
     ]);
     loadingSubject = new BehaviorSubject<boolean>(false);
 
@@ -41,7 +41,7 @@ describe('TransactionDetailComponent', () => {
       TransactionService
     ) as jasmine.SpyObj<TransactionService>;
     transactionService.loading$ = loadingSubject.asObservable();
-    transactionService.getTransactionById.and.returnValue(of(undefined)); // Ensure it returns an observable
+    transactionService.getTransactionByDateAndId.and.returnValue(of(undefined)); // Ensure it returns an observable
   });
 
   it('should create the component', () => {
@@ -58,7 +58,9 @@ describe('TransactionDetailComponent', () => {
       otherParty: { name: 'John Doe', iban: 'NL00RABO0123456789' },
     };
 
-    transactionService.getTransactionById.and.returnValue(of(mockTransaction));
+    transactionService.getTransactionByDateAndId.and.returnValue(
+      of(mockTransaction)
+    );
     loadingSubject.next(false);
     fixture.detectChanges();
 
@@ -69,7 +71,7 @@ describe('TransactionDetailComponent', () => {
   });
 
   it('should display error message if transaction not found', () => {
-    transactionService.getTransactionById.and.returnValue(of(undefined));
+    transactionService.getTransactionByDateAndId.and.returnValue(of(undefined));
     loadingSubject.next(false);
     fixture.detectChanges();
     const errorMessage = fixture.nativeElement.querySelector(
@@ -79,7 +81,7 @@ describe('TransactionDetailComponent', () => {
   });
 
   it('should handle errors from the service', () => {
-    transactionService.getTransactionById.and.returnValue(
+    transactionService.getTransactionByDateAndId.and.returnValue(
       throwError(() => new Error('Error'))
     );
     loadingSubject.next(false);

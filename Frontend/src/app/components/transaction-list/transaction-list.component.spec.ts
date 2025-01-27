@@ -147,7 +147,11 @@ describe('TransactionListComponent', () => {
     expect(transactionItem).toBeTruthy();
     transactionItem.triggerEventHandler('click', null);
 
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/transactions', 1]);
+    expect(routerMock.navigate).toHaveBeenCalledWith([
+      '/transactions',
+      '2023-10-01',
+      1,
+    ]);
   });
 
   it('should display error message when loading items fails', () => {

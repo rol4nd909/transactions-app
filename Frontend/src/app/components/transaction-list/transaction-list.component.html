@@ -11,16 +11,13 @@
     <div *ngFor="let date of getSortedDates()" class="transaction-group" data-test="group">
       <h2 class="transaction-date"><span data-test="date">{{ formatDate(date) }}</span> <span>EUR</span></h2>
       <ul class="transaction-items">
-        <li
-          *ngFor="let transaction of transactions.get(date)"
-          class="transaction-item"
-          data-test="item"
-          (click)="navigateToDetail(transaction.id)"
-        >
-          <span class="transaction-party">{{ transaction.otherParty?.name || 'unknown' }}</span>
-          <strong class="transaction-amount">
-            {{ transaction.amount | currency:'EUR':'' }}
-          </strong>
+        <li *ngFor="let transaction of transactions.get(date)" class="transaction-item">
+          <button data-test="item" (click)="navigateToDetail(date, transaction.id)">
+            <span class="transaction-party">{{ transaction.otherParty?.name || 'unknown' }}</span>
+            <strong class="transaction-amount">
+              {{ transaction.amount | currency:'EUR':'' }}
+            </strong>
+          </button>
         </li>
       </ul>
     </div>

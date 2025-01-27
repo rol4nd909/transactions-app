@@ -25,12 +25,7 @@
       gap: 1rem;
 
       > li {
-        display: flex;
-        gap: 1rem;
-        justify-content: space-between;
-        align-items: start;
-
-        cursor: pointer;
+        display: grid;
 
         + li {
           margin-inline-end: calc(1.5rem * -1);
@@ -38,6 +33,17 @@
           border-block-start: 1px solid
             color-mix(in hsl, var(--text), var(--surface) 90%);
           padding-block-start: 1rem;
+        }
+
+        > button {
+          display: flex;
+          gap: 1rem;
+          justify-content: space-between;
+          align-items: start;
+          cursor: pointer;
+          background-color: transparent;
+          border: none;
+          padding: 0;
         }
       }
     }

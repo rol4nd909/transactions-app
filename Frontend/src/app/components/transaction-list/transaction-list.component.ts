@@ -61,7 +61,7 @@ export class TransactionListComponent implements OnInit {
    * Navigates to the transaction detail page.
    * @param id - The ID of the transaction to view details for.
    */
-  navigateToDetail(id: number): void {
-    this.router.navigate(['/transactions', id]);
+  navigateToDetail(date: string, id: number): void {
+    this.router.navigate(['/transactions', date, id]);
   }
 }

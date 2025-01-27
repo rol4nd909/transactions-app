@@ -18,8 +18,14 @@ export class TransactionService {
   private errorSubject = new BehaviorSubject<string | null>(null);
   error$ = this.errorSubject.asObservable();
 
+  private transactionCounter = 0;
+
   constructor(private http: HttpClient) {
     this.loadingSubject.next(false); // Ensure loading state is initialized to false
+  }
+
+  private generateUniqueId(): number {
+    return ++this.transactionCounter;
   }
 
   private convertToEur(transaction: Transaction): Transaction {
@@ -45,14 +51,17 @@ export class TransactionService {
   getTransactions() {
     this.loadingSubject.next(true);
     this.errorSubject.next(null); // Reset error state
+    this.transactionCounter = 0; // Reset the counter before fetching transactions
     return this.http
       .get<{ days: TransactionsDay[] }>(`${environment.apiUrl}`)
       .pipe(
         map((data) =>
           data.days.flatMap((day) =>
-            day.transactions.map((transaction) =>
-              this.convertToEur(transaction)
-            )
+            day.transactions.map((transaction) => {
+              transaction = this.convertToEur(transaction);
+              transaction.id = this.generateUniqueId();
+              return transaction;
+            })
           )
         ),
         catchError((error) => {
@@ -67,18 +76,22 @@ export class TransactionService {
   }
 
   /**
-   * Fetches a transaction by its ID.
+   * Fetches a transaction by its date and ID.
+   * @param date - The date of the transaction to fetch.
    * @param id - The ID of the transaction to fetch.
    * @returns An Observable of the transaction if found, otherwise undefined.
    */
-  getTransactionById(id: number) {
+  getTransactionByDateAndId(date: string, id: number) {
     this.loadingSubject.next(true);
     return this.getTransactions().pipe(
       map((transactions) =>
-        transactions.find((transaction) => transaction.id === id)
+        transactions.find(
+          (transaction) =>
+            transaction.id === id && transaction.timestamp.startsWith(date)
+        )
       ),
       catchError((error) => {
-        console.error('Error fetching transaction by ID:', error);
+        console.error('Error fetching transaction by date and ID:', error);
         return of(undefined);
       }),
       finalize(() => this.loadingSubject.next(false))

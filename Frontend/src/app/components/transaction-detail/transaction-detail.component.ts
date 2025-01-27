@@ -37,9 +37,10 @@ export class TransactionDetailComponent implements OnInit {
    * OnInit lifecycle hook to fetch transaction details based on route parameter.
    */
   ngOnInit(): void {
+    const transactionDate = this.route.snapshot.paramMap.get('date')!; // Get date from the route params
     const transactionId = +this.route.snapshot.paramMap.get('id')!; // Get ID from the route params
     this.transactionService
-      .getTransactionById(transactionId)
+      .getTransactionByDateAndId(transactionDate, transactionId)
       .subscribe((transaction) => {
         this.transaction = transaction; // Set the transaction if it exists
       });
