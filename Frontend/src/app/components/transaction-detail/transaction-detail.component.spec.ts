@@ -52,19 +52,20 @@ describe('TransactionDetailComponent', () => {
     const mockTransaction = {
       id: 1,
       amount: 100,
-      amountInEur: 85,
       currencyCode: 'USD',
       timestamp: '2023-10-01T12:00:00Z',
       description: 'Test transaction',
       otherParty: { name: 'John Doe', iban: 'NL00RABO0123456789' },
     };
+
     transactionService.getTransactionById.and.returnValue(of(mockTransaction));
     loadingSubject.next(false);
     fixture.detectChanges();
+
     const amountElement = fixture.nativeElement.querySelector(
       '[data-test="amount"]'
     );
-    expect(amountElement.textContent).toContain('EUR 85');
+    expect(amountElement.textContent).toContain('EUR 100');
   });
 
   it('should display error message if transaction not found', () => {

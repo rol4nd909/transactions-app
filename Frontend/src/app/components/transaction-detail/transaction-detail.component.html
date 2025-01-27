@@ -13,7 +13,7 @@
       </button>
 
       <div>
-        <span class="transaction-header__amount" data-test="amount">EUR <strong>{{ transaction.amountInEur | currency:'EUR':'' }}</strong></span>
+        <span class="transaction-header__amount" data-test="amount">EUR <strong>{{ transaction.amount | currency:'EUR':'' }}</strong></span>
         <p class="transaction-header__party" data-test="party">{{ transaction.otherParty?.name }}</p>
       </div>
     </div>

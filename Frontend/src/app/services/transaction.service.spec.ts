@@ -23,13 +23,12 @@ describe('TransactionService', () => {
     const mockResponse = {
       days: [
         {
-          id: '2025-01-10',
+          id: '2022-11-08',
           transactions: [
             {
               id: 1,
-              amount: 100,
+              amount: 10,
               currencyCode: 'USD',
-              currencyRate: 1,
               description: 'Transaction A',
               timestamp: '2025-01-10T10:00:00Z',
             },
@@ -44,11 +43,10 @@ describe('TransactionService', () => {
       expect(transactions).toEqual([
         {
           id: 1,
-          amount: 100,
+          amount: 10,
           currencyCode: 'USD',
           description: 'Transaction A',
           timestamp: '2025-01-10T10:00:00Z',
-          amountInEur: 100,
         },
       ]);
     });
@@ -85,7 +83,6 @@ describe('TransactionService', () => {
               id: 1,
               amount: 100,
               currencyCode: 'USD',
-              currencyRate: 1,
               description: 'Transaction A',
               timestamp: '2025-01-10T10:00:00Z',
             },
@@ -110,7 +107,6 @@ describe('TransactionService', () => {
         currencyCode: 'USD',
         description: 'Transaction A',
         timestamp: '2025-01-10T10:00:00Z',
-        amountInEur: 100,
       });
     });
 
@@ -178,7 +174,7 @@ describe('TransactionService', () => {
 
     const groupedTransactions = service.groupTransactionsByDate(transactions);
 
-    expect(groupedTransactions['2023-10-01']).toEqual([
+    expect(groupedTransactions.get('2023-10-01')).toEqual([
       {
         id: 1,
         amount: 100,
@@ -195,7 +191,7 @@ describe('TransactionService', () => {
       },
     ]);
 
-    expect(groupedTransactions['2023-10-02']).toEqual([
+    expect(groupedTransactions.get('2023-10-02')).toEqual([
       {
         id: 3,
         amount: 300,

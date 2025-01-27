@@ -13,8 +13,8 @@ import { Observable } from 'rxjs';
   providers: [DatePipe],
 })
 export class TransactionListComponent implements OnInit {
-  // Object to hold transactions grouped by date
-  transactions: { [date: string]: Transaction[] } = {};
+  // Map to hold transactions grouped by date
+  transactions: Map<string, Transaction[]> = new Map();
   // Observable to track loading state
   loading$: Observable<boolean>;
   // Observable to track error state
@@ -48,11 +48,13 @@ export class TransactionListComponent implements OnInit {
   }
 
   /**
-   * Gets the sorted dates from the transactions object.
+   * Gets the sorted dates from the transactions map.
    * @returns An array of sorted date strings.
    */
   getSortedDates(): string[] {
-    return Object.keys(this.transactions).sort((a, b) => (a > b ? -1 : 1));
+    return Array.from(this.transactions.keys()).sort((a, b) =>
+      a > b ? -1 : 1
+    );
   }
 
   /**

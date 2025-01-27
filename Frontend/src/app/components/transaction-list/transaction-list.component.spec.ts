@@ -6,6 +6,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { BehaviorSubject, of } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { Transaction } from '../../models/transaction.model';
 
 describe('TransactionListComponent', () => {
   let component: TransactionListComponent;
@@ -87,10 +88,10 @@ describe('TransactionListComponent', () => {
         },
       },
     ];
-    const groupedTransactions = {
-      '2023-10-01': [transactions[0], transactions[1]],
-      '2023-10-02': [transactions[2]],
-    };
+    const groupedTransactions = new Map<string, Transaction[]>([
+      ['2023-10-01', [transactions[0], transactions[1]]],
+      ['2023-10-02', [transactions[2]]],
+    ]);
     transactionService.getTransactions.and.returnValue(of(transactions));
     transactionService.groupTransactionsByDate.and.returnValue(
       groupedTransactions
@@ -129,9 +130,9 @@ describe('TransactionListComponent', () => {
         },
       },
     ];
-    const groupedTransactions = {
-      '2023-10-01': [transactions[0]],
-    };
+    const groupedTransactions = new Map<string, Transaction[]>([
+      ['2023-10-01', [transactions[0]]],
+    ]);
     transactionService.getTransactions.and.returnValue(of(transactions));
     transactionService.groupTransactionsByDate.and.returnValue(
       groupedTransactions

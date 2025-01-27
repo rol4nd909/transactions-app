@@ -12,14 +12,14 @@
       <h2 class="transaction-date"><span data-test="date">{{ formatDate(date) }}</span> <span>EUR</span></h2>
       <ul class="transaction-items">
         <li
-          *ngFor="let transaction of transactions[date]"
+          *ngFor="let transaction of transactions.get(date)"
           class="transaction-item"
           data-test="item"
           (click)="navigateToDetail(transaction.id)"
         >
           <span class="transaction-party">{{ transaction.otherParty?.name || 'unknown' }}</span>
           <strong class="transaction-amount">
-            {{ transaction.amountInEur | currency:'EUR':'' }}
+            {{ transaction.amount | currency:'EUR':'' }}
           </strong>
         </li>
       </ul>
